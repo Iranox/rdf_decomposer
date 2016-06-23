@@ -1,0 +1,229 @@
+PREFIX sorg: <http://schema.org/>
+PREFIX og: <http://ogp.me/ns#>
+
+SELECT    ?nr ?description ?keywords ?label ?expires ?conttentRating ?contentSize
+from <http://localhost:8890/watdiv> 
+WHERE {
+      ?nr og:title ?label.
+      OPTIONAL {?nr sorg:keywords ?keywords }
+      OPTIONAL { ?nr sorg:description ?description}
+      OPTIONAL {?nr sorg:contentSize ?contentSize}
+      OPTIONAL {?nr sorg:contentRating ?conttentRating}
+      OPTIONAL {?nr sorg:expires ?expires}
+      
+     
+}
+// User
+PREFIX sorg: <http://schema.org/>
+PREFIX og: <http://ogp.me/ns#>
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+PREFIX foaf: <http://xmlns.com/foaf/>
+PREFIX dc: <http://purl.org/dc/terms/>
+
+
+SELECT ?nr ?userId ?givenName  ?familyName ?email ?birthDate ?telephone ?AgeGroup ?Website ?Location ?nationalty ?Gender
+?subscribes
+ Where{
+  ?nr wsdbm:userId ?userId.
+  OPTIONAL{?nr foaf:givenName ?givenName } 
+  OPTIONAL{?nr foaf:familyName ?familyName } 
+  OPTIONAL{?nr sorg:email ?email } 
+  OPTIONAL{?nr sorg:birthDate ?birthDate } 
+  OPTIONAL{?nr sorg:telephone ?telephone }
+ OPTIONAL{?nr foaf:age ?AgeGroup}
+ OPTIONAL{?nr dc:Location ?Location}
+ OPTIONAL{?nr foaf:homepage ?Website}
+ OPTIONAL{?nr sorg:nationality ?nationalty}
+ OPTIONAL{?nr wsdbm:gender ?Gender}
+ OPTIONAL{?nr wsdbm:subscribes ?subscribes}
+ OPTIONAL{?nr sorg:jobTitle ?jobTitle}
+}
+
+//rolle
+
+SELECT ?role ?user WHERE {
+ ?user rdf:type ?role .
+}
+
+//likes
+
+
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+
+SELECT ?user ?product from <http://localhost:8890/watdiv>   WHERE  {
+ ?user wsdbm:likes ?product .
+}
+
+//friends
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+SELECT ?friend1 ?friend2
+from <http://localhost:8890/watdiv> 
+WHERE {
+  ?friend1 wsdbm:friendOf ?friend2 .
+}
+
+//follower
+
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+
+SELECT ?user1 ?user2 from <http://localhost:8890/watdiv> 
+WHERE  {
+ ?user1 wsdbm:follows ?user2 .
+}
+
+
+//Retailer
+PREFIX sorg: <http://schema.org/>
+PREFIX gr: <http://purl.org/goodrelations/>
+
+
+SELECT ?nr ?name ?description ?openingHours ?paymentAccepted ?email ?telephone ?faxNumber ?aggregateRating ?legalName ?faxNumber
+WHERE {
+  ?nr gr:name ?name;
+   gr:description ?description .
+  OPTIONAL {?nr sorg:openingHours ?openingHours}
+  OPTIONAL {?nr sorg:paymentAccepted ?paymentAccepted }
+  OPTIONAL {?nr sorg:email ?email }
+  OPTIONAL {?nr sorg:telephone ?telephone }
+  OPTIONAL {?nr sorg:faxNumber ?faxNumber }
+  OPTIONAL {?nr sorg:aggregateRating ?aggregateRating}
+  OPTIONAL {?nr sorg:legalName ?legalName }
+}
+
+// offer
+PREFIX sorg: <http://schema.org/>
+PREFIX gr: <http://purl.org/goodrelations/>
+
+SELECT ?nr ?serialNumber ?price ?validFrom ?validThrough ?priceValidUntil ?eligibleQuanity  
+WHERE {
+ ?nr gr:serialNumber ?serialNumber;
+  gr:price ?price .
+OPTIONAL{ ?nr gr:validFrom ?validFrom}
+ OPTIONAL { ?nr gr:validThrough ?validThrough }
+ OPTIONAL {?nr sorg:priceValidUntil ?priceValidUntil}
+  OPTIONAL {?nr sorg:eligibleQuantity ?eligibleQuanity }
+}
+
+// offer product
+PREFIX sorg: <http://schema.org/>
+PREFIX gr: <http://purl.org/goodrelations/>
+
+SELECT ?nr  ?product ?country
+WHERE {
+ ?nr gr:serialNumber ?serialNumber;
+  gr:includes ?product .
+ OPTIONAL {?nr sorg:eligibleRegion ?country}
+}
+
+
+//review
+
+PREFIX rev: <http://purl.org/stuff/rev#>
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+
+
+SELECT ?nr ?rating ?title ?text ?totalVotes ?reviewer ?product
+WHERE {
+  ?nr rev:rating ?rating .
+  OPTIONAL {?nr rev:title ?title}
+  OPTIONAL {?nr rev:text ?text}
+  OPTIONAL {?nr rev:totalVotes ?totalVotes}
+  OPTIONAL {?nr rev:reviewer ?reviewer}
+  OPTIONAL {?product rev:hasReview ?nr}
+}
+
+// retailer offer
+
+PREFIX gr:<http://purl.org/goodrelations/>
+
+
+SELECT ?retrailer ?offer
+WHERE {
+   ?retrailer gr:offers ?offer .
+}
+
+
+
+// ProductCategory0
+PREFIX mo: <http://purl.org/ontology/mo/>
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+
+
+SELECT  ?nr ?opus  ?movement ?composer ?performer
+WHERE {
+   ?nr mo:opus  ?opus ;
+       mo:movement ?movement.
+   OPTIONAL {?nr wsdbm:composer ?composer}
+   OPTIONAL {?nr mo:performer ?performer}
+}
+
+PREFIX mo: <http://purl.org/ontology/mo/>
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+
+//Product ProductCategory
+
+SELECT ?productCategory ?nr
+from <http://localhost:8890/watdiv> 
+WHERE {
+   ?nr rdf:type ?productCategory .
+ FILTER (regex(str(?productCategory), "^http://db.uwaterloo.ca/~galuc/wsdbm/ProductCategory"))
+}
+
+// Genre Product
+
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+
+
+SELECT ?nr ?genre
+from <http://localhost:8890/watdiv> 
+WHERE {
+   ?nr wsdbm:hasGenre ?genre
+}
+
+// ProductCategory 1
+PREFIX mo: <http://purl.org/ontology/mo/>
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+
+
+SELECT ?nr ?producer ?recordNumber ?release
+from <http://localhost:8890/watdiv> 
+WHERE {
+   ?nr mo:producer ?producer.
+   OPTIONAL {?nr  mo:record_number ?recordNumber} .
+   OPTIONAL {?nr mo:release ?release}
+}
+
+// ProductCategory 2
+
+PREFIX mo: <http://purl.org/ontology/mo/>
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+PREFIX sorg: <http://schema.org/>
+
+
+SELECT ?nr ?duration ?producer ?award0 
+from <http://localhost:8890/watdiv> 
+WHERE {
+   ?nr sorg:duration ?duration .
+    OPTIONAL {?nr  sorg:producer ?producer}
+    OPTIONAL {?nr sorg:award ?award0}
+}
+
+
+// ProductCategory 3
+
+PREFIX mo: <http://purl.org/ontology/mo/>
+PREFIX wsdbm: <http://db.uwaterloo.ca/~galuc/wsdbm/>
+PREFIX sorg: <http://schema.org/>
+
+
+SELECT ?nr ?isbn ?edition ?number ?type
+from <http://localhost:8890/watdiv> 
+WHERE {
+   ?nr rdf:type ?type;
+  sorg:isbn ?isbn .
+   OPTIONAL{ ?nr sorg:bookEdition ?edition}
+   OPTIONAL{ ?nr sorg:numberOfPages ?number}
+        
+   
+}
+
