@@ -1,6 +1,7 @@
 package org.aksw.rdfreader;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import com.hp.hpl.jena.query.QueryExecution;
@@ -10,68 +11,92 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.sparql.engine.binding.Binding;
 
 public class RDFReader implements Runnable {
 	private String endpoint;
-	private BlockingQueue<QuerySolution> queue;
-	private String query;
-	
-	
+	private BlockingQueue<ResultSet> queue;
+	private String uri;
 
-	public RDFReader(String endpoint, String query) {
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+
+	public String getUri() {
+		return uri;
+	}
+
+	public RDFReader(String endpoint) {
 		super();
 		this.endpoint = endpoint;
-		this.query = query;
 	}
 
-	public RDFReader(String endpoint, BlockingQueue<QuerySolution> queue, String query) {
+	public RDFReader(String endpoint, BlockingQueue<ResultSet> queue) {
 		this.endpoint = endpoint;
 		this.queue = queue;
-		this.query = query;
 	}
 
-	public String[] getVariable(String query) {
-		QueryExecution quer = QueryExecutionFactory.sparqlService(endpoint, query);
+	public void getRDFClass(String uri) throws InterruptedException {
+		QueryExecution quer = QueryExecutionFactory.sparqlService(endpoint,
+				"SELECT distinct ?p ?o { <" + uri.trim() + "> ?p ?o }");
 		ResultSet results = quer.execSelect();
-		String[] resultVar = new String[results.getResultVars().size()];
-		for (int i = 0; i < results.getResultVars().size(); i++) {
-			resultVar[i] = results.getResultVars().get(i).toString();
-		}
-		return resultVar;
+
+		queue.put(results);
+
 	}
 
 	public void readData() throws Exception {
-		QueryExecution quer = QueryExecutionFactory.sparqlService(endpoint, query);
+		QueryExecution quer = QueryExecutionFactory.sparqlService(endpoint,
+				"select DISTINCT ?prod {?prod ?p ?o. FILTER (regex(str(?prod), \"^" + uri.toString() + "\"))} ");
 		ResultSet results = quer.execSelect();
 		while (results.hasNext()) {
 			QuerySolution soln = results.nextSolution();
-			queue.put(soln);
+			getRDFClass(soln.get("prod").toString());
 		}
-		queue.put(getPosion());
 
 	}
-	
-	private QuerySolution getPosion(){
-		return new QuerySolution() {
+
+	private ResultSet getPosion() {
+		return new ResultSet() {
 			
-			public Iterator varNames() {
+			public void remove() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public QuerySolution nextSolution() {
+				// TODO Auto-generated method stub
 				return null;
 			}
 			
-			public Resource getResource(String arg0) {
+			public Binding nextBinding() {
+				// TODO Auto-generated method stub
 				return null;
 			}
 			
-			public Literal getLiteral(String arg0) {
+			public Object next() {
+				// TODO Auto-generated method stub
 				return null;
 			}
 			
-			public RDFNode get(String arg0) {
-				return null;
-			}
-			
-			public boolean contains(String arg0) {
+			public boolean isOrdered() {
+				// TODO Auto-generated method stub
 				return false;
+			}
+			
+			public boolean hasNext() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+			
+			public int getRowNumber() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+			
+			public List getResultVars() {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		};
 	}
@@ -82,7 +107,7 @@ public class RDFReader implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 }
